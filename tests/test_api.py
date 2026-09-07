@@ -33,3 +33,13 @@ if os.getenv("TEST_DATABASE_URL"):
         response = client.get("/health")
         assert response.status_code == 200
         assert response.json()["status"] == "ok"
+
+
+def test_period_report_rejects_reversed_range():
+    from datetime import date
+    from app.main import catch_report_by_period
+
+    with pytest.raises(Exception) as exc_info:
+        catch_report_by_period(date_from=date(2026, 9, 30), date_to=date(2026, 9, 1), db=None)
+
+    assert "не может быть раньше" in str(exc_info.value)

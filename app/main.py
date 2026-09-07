@@ -236,6 +236,44 @@ def create_catch(payload: CatchIn, db: Session = Depends(get_db)):
     return item
 
 
+@app.get("/api/reports/catch-by-period")
+def catch_report_by_period(
+    date_from: date | None = None,
+    date_to: date | None = None,
+    db: Session = Depends(get_db),
+):
+    if date_from and date_to and date_to < date_from:
+        raise HTTPException(422, "Дата окончания периода не может быть раньше даты начала")
+
+    stmt = (
+        select(
+            Trip.id,
+            Boat.name,
+            Trip.departure_date,
+            func.coalesce(func.sum(Catch.weight_kg), 0).label("total_weight_kg"),
+        )
+        .join(Boat, Boat.id == Trip.boat_id)
+        .outerjoin(Catch, Catch.trip_id == Trip.id)
+        .group_by(Trip.id, Boat.name, Trip.departure_date)
+        .order_by(Trip.departure_date, Trip.id)
+    )
+    if date_from:
+        stmt = stmt.where(Trip.departure_date >= date_from)
+    if date_to:
+        stmt = stmt.where(Trip.departure_date <= date_to)
+
+    rows = db.execute(stmt).all()
+    return [
+        {
+            "trip_id": trip_id,
+            "boat": boat,
+            "departure_date": departure_date,
+            "total_weight_kg": float(total_weight),
+        }
+        for trip_id, boat, departure_date, total_weight in rows
+    ]
+
+
 @app.get("/api/reports/catch-by-trip")
 def catch_report(db: Session = Depends(get_db)):
     rows = db.execute(
