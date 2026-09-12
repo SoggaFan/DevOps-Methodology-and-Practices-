@@ -41,3 +41,9 @@ curl -s -X POST http://localhost:8000/api/catches -H 'Content-Type: application/
 ```bash
 curl -s http://localhost:8000/api/reports/catch-by-trip
 ```
+Health check
+
+Проверка работоспособности API:
+
+```text
+GET http://localhost:8000/health
