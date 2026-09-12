@@ -2,9 +2,12 @@ import os
 from contextlib import asynccontextmanager
 from datetime import date
 from decimal import Decimal
+from pathlib import Path
 from typing import Generator
 
 from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import Date, ForeignKey, Numeric, String, Text, create_engine, func, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
@@ -75,6 +78,13 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="Fishing Firm API", version="0.1.0", lifespan=lifespan)
+WEB_DIR = Path(__file__).resolve().parent.parent / "web"
+app.mount("/static", StaticFiles(directory=WEB_DIR), name="static")
+
+
+@app.get("/", include_in_schema=False)
+def web_interface():
+    return FileResponse(WEB_DIR / "index.html")
 
 
 def get_db() -> Generator[Session, None, None]:
