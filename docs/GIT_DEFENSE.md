@@ -59,3 +59,18 @@ git tag
 curl http://localhost:8000/health
 ```
 Затем показать Swagger, таблицы БД и PR/MR.
+
+### Health-check
+
+Для демонстрации работоспособности API используется служебный endpoint:
+
+```text
+GET /health
+```
+Ожидаемый HTTP-код: 200.
+
+Пример проверки:
+
+```bash
+curl http://localhost:8000/health
+```
